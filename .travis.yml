@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pbisso/react-test -f ./client/Dockerfile.dev ./client/Dockerfile.dev ./client/Dockerfile.dev ./
+
+script:
+  - docker run pbisso/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t pbisso/multi-client ./client
+  - docker built -t pbisso/multi-nginx ./nginx
+  - docker build -t pbisso/multi-server ./server
+  - docker build -t pbisso/multi-worker ./worker
+# Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# Take the images and push them to Docker hub.
+  - docker push pbisso/multi-client
+  - docker push pbisso/multi-nginx
+  - docker push pbisso/multi-server
+  - docker push pbisso/multi-worker
